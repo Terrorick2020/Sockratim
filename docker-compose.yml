@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+  db:
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+     - 8889:3306
+    volumes:
+     - website-db:/var/lib/mysql
+     - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  server:
+    build: ./backend
+    ports:
+      - 8888:80
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/var/www/html
+  
+  phpmyadmin:
+    image: phpmyadmin
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - 3001:80
+    depends_on:
+      - db
+  
+  client:
+    build: ./frontend
+    ports:
+      - 3000:3000
+    depends_on:
+      - server
+      - db
+    
+
+volumes:
+  website-db:
